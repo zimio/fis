@@ -32,9 +32,13 @@
       <jid>j.lagrange@jabber.org</jid>
       <jid>j.lagrange@gajim.org</jid>
   </author>
+  <author>
+      <firstname>Lance</firstname>
+      <surname>Stout</surname>
+  </author>
   <revision>
-    <version>0.0.2</version>
-    <date>2012-10-14</date>
+    <version>0.0.3</version>
+    <date>2013-01-26</date>
     <initials>jl</initials>
     <remark>Second draft</remark>
   </revision>
@@ -42,6 +46,7 @@
 <section1 topic='Introduction' anchor='intro'>
   <p>XMPP extensions provide ways of transferring files between peers (such as &xep0234; and &xep0096;). However, file transfer is currently limited to needing that the transfer be initiated by the hosting entity. The &xep0234; extension, provides for a way to request files, but it requires the requesting entity to have information about the file being requested, so that it can be uniquely identified. </p>
 <p>This document defines an extension which allows the request of information of files being offered by a hosting entity so they can later be requested in a file transfer; If the requesting entity is interested in the file.</p>
+<p>&xep0135; is a previous extention that attempted to solve the same problem as this one, but unfortunetly it didn't generate much interest and it got deprecated. This extention aims be a modern replacement for XEP-0135. Some of the major differences between the two is that this extention provides a mechanism for searching files, it reuses the metadata for files defined in XEP-0234 (which has a lot of benefits over using dataforms, such as the use of &xep0300;), and allows for a possibility of &lt;<link url='http://en.wikipedia.org/wiki/Swarmcast'>swarming file transfer</link>&gt; (by allowing a file be requested by its hash and using jingle's ranged transfer).</p>
 <p>IRC users have been able to bypass the limitations of the protocol by using bots that provide information of files and initiate transfer on command. A major downside of this method is that not every user is capable of sharing its files. The aim of this document is to provide a similar functionality while making it easier for users to offer and request information about files. </p>
 <p>Microsoft's MSN proprietary IM client, used to provide similar functionality using "Sharing Folders", but this was replaced by Windows Live SkyDrive </p>
 </section1>
@@ -67,11 +72,7 @@
     from='juliet@capulet.com/chamber'
     to='romeo@montague.net/home'
     id='1234'>
-    <match xmlns='urn:xmpp:mam'>
-        <request>
-            <directory/>
-        </request>
-    </match>
+    <query xmlns="urn:xmpp:fis" />
 </iq>
 ]]>
       </example>
@@ -84,21 +85,19 @@
     from='romeo@montague.net/home'
     to='juliet@capulet.com/chamber'
     id='1234'>
-    <match xmlns='urn:xmpp:mam'>
-        <offer>
-            <file xmlns='urn:xmpp:jingle:apps:file-transfer:3'>
-                <date>1969-07-21T02:56:15Z</date>
-                <desc>This is a test. If this were a real file...</desc>
-                <name>test.txt</name>
-                <size>1022</size>
-                <hash xmlns='urn:xmpp:hashes:1' algo='sha-1'>552da749930852c69ae5d2141d3766b1</hash>
-            </file>
-            <file xmlns='urn:xmpp:jingle:apps:file-transfer:3'>
-                <name>test2.txt</name>
-            </file>
-            <directory name='pics'/>
-        </offer>
-    </match>
+    <query xmlns="urn:xmpp:fis">
+        <file xmlns='urn:xmpp:jingle:apps:file-transfer:3'>
+            <date>1969-07-21T02:56:15Z</date>
+            <desc>This is a test. If this were a real file...</desc>
+            <name>test.txt</name>
+            <size>1022</size>
+            <hash xmlns='urn:xmpp:hashes:1' algo='sha-1'>552da749930852c69ae5d2141d3766b1</hash>
+        </file>
+        <file xmlns='urn:xmpp:jingle:apps:file-transfer:3'>
+            <name>test2.txt</name>
+        </file>
+        <directory name='pics'/>
+    </query>
 </iq>
 ]]>
       </example>
@@ -109,11 +108,7 @@
     from='romeo@montague.net/home'
     to='juliet@capulet.com/chamber'
     id='1234'>
-    <match xmlns='urn:xmpp:mam'>
-        <offer>
-            <directory/>
-        </offer>
-    </match>
+    <query xmlns="urn:xmpp:fis" />
 </iq>
 ]]>
       </example>
@@ -124,13 +119,7 @@
     from='juliet@capulet.com/chamber'
     to='romeo@montague.net/home'
     id='1234'>
-    <match xmlns='urn:xmpp:mam'>
-        <request>
-            <file xmlns='urn:xmpp:jingle:apps:file-transfer:3'>
-                <name>test2.txt</name>
-            </file>
-        </request>
-    </match>
+    <query xmlns="urn:xmpp:fis" node="test2.txt" />
 </iq>
 ]]>
 </example>
@@ -141,14 +130,12 @@
     from='romeo@montague.net/home'
     to='juliet@capulet.com/chamber'
     id='1234'>
-    <match xmlns='urn:xmpp:mam'>
-        <offer>
-            <file xmlns='urn:xmpp:jingle:apps:file-transfer:3'>
-                <name>test2.txt</name>
-                <size>1000</size>
-            </file>
-        </offer>
-    </match>
+    <query xmlns="urn:xmpp:fis" node="test2.txt">
+        <file xmlns='urn:xmpp:jingle:apps:file-transfer:3'>
+        <name>test2.txt</name>
+        <size>1000</size>
+        </file>
+    </query>
 </iq>
 ]]>
 </example>
@@ -158,11 +145,7 @@
     from='juliet@capulet.com/chamber'
     to='romeo@montague.net/home'
     id='1234'>
-    <match xmlns='urn:xmpp:mam'>
-        <request>
-            <directory name='pics'/>
-        </request>
-    </match>
+    <query xmlns="urn:xmpp:fis" node="pics" />
 </iq>
 ]]>
 </example>
@@ -172,19 +155,15 @@
     from='romeo@montague.net/home'
     to='juliet@capulet.com/chamber'
     id='1234'>
-    <match xmlns='urn:xmpp:mam'>
-        <offer>
-            <directory name='pics'>
-                <file xmlns='urn:xmpp:jingle:apps:file-transfer:3'>
-                    <name>test3.png</name>
-                </file>
-                <file xmlns='urn:xmpp:jingle:apps:file-transfer:3'>
-                    <name>test4.png</name>
-                </file>
-                <directory name="landscapes" />
-            </directory>
-        </offer>
-    </match>
+    <query xmlns="urn:xmpp:fis" node="pics">
+        <file xmlns='urn:xmpp:jingle:apps:file-transfer:3'>
+            <name>test3.png</name>
+        </file>
+        <file xmlns='urn:xmpp:jingle:apps:file-transfer:3'>
+            <name>test4.png</name>
+        </file>
+        <directory name="landscapes" />
+    </query>
 </iq>
 ]]>
 </example>
@@ -193,12 +172,13 @@
       <p>Sometimes the list of files is too big to be efficiently traversed or there are too many peers offering files. This extensions allows simple file search to ease the discovery of files.</p>
       <p>The requesting entity can request the fields on which a search can be performed. </p>
       <example caption='Requesting search fields'>
+<!-- SEARCH NEEDS TO BE REVISED -->
 <![CDATA[
 <iq type='get'
     from='juliet@capulet.com/chamber'
     to='romeo@montague.net/home'
     id='1234'>
-    <match xmlns='urn:xmpp:mam'>
+    <match xmlns='urn:xmpp:fis'>
         <query xmlns='jabber:iq:search' />
     </match>
 </iq>
@@ -211,7 +191,7 @@
     from='romeo@montague.net/home'
     to='juliet@capulet.com/chamber'
     id='1234'>
-    <match xmlns='urn:xmpp:mam'>
+    <match xmlns='urn:xmpp:fis'>
         <query xmlns='jabber:iq:search'>
             <name/>
             <size/>
@@ -223,7 +203,7 @@
 </iq>
 ]]>
 </example>
-<p>Different files have different metadata and all of them may not be completly covered by the fields mentioned before. Of course, any field that doesn't fit could be included in "desc", however this can make search difficult as it is not clearly defined what to look for.</p>
+<p>Different files have different metadata and all of them may not be completely covered by the fields mentioned before. Of course, any field that doesn't fit could be included in "desc", however this can make search difficult as it is not clearly defined what to look for.</p>
 <p>Fields can be extended using dataforms, as it is defined in &xep0055;</p>
 <example caption='Receiving extended search fields'>
 <![CDATA[
@@ -231,7 +211,7 @@
     from='romeo@montague.net/home'
     to='juliet@capulet.com/chamber'
     id='1234'>
-    <match xmlns='urn:xmpp:mam'>
+    <match xmlns='urn:xmpp:fis'>
         <query xmlns='jabber:iq:search'>
             <name/>
             <size/>
@@ -262,7 +242,7 @@
     from='juliet@capulet.com/chamber'
     to='romeo@montague.net/home'
     id='1234'>
-    <match xmlns='urn:xmpp:mam'>
+    <match xmlns='urn:xmpp:fis'>
         <query xmlns='jabber:iq:search'>
             <x xmlns='jabber:x:data' type='submit'>
               <field type='hidden' var='FORM_TYPE'>
@@ -283,7 +263,7 @@
     from='romeo@montague.net/home'
     to='juliet@capulet.com/chamber'
     id='1234'>
-    <match xmlns='urn:xmpp:mam'>
+    <match xmlns='urn:xmpp:fis'>
         <query xmlns='jabber:iq:search'>
             <x xmlns='jabber:x:data' type='submit'>
               <field type='hidden' var='FORM_TYPE'>
@@ -309,7 +289,7 @@
     from='juliet@capulet.com/chamber'
     to='romeo@montague.net/home'
     id='1234'>
-    <match xmlns='urn:xmpp:mam'>
+    <match xmlns='urn:xmpp:fis'>
         <query xmlns='jabber:iq:search'>
             <name>test</name>
         </query>
@@ -323,7 +303,7 @@
     from='romeo@montague.net/home'
     to='juliet@capulet.com/chamber'
     id='1234'>
-    <match xmlns='urn:xmpp:mam'>
+    <match xmlns='urn:xmpp:fis'>
         <query xmlns='jabber:iq:search'>
             <item>
               <name>test.txt</name>
@@ -342,14 +322,14 @@
 </iq>
 ]]>
       </example>
-      <p>When simple keyword matching is not enough to efficiently search files, regular expressions (as defined in &xep0004;) can be used</p>
+      <p>When simple keyword matching is not enough to efficiently search files, regular expressions (as defined in &xep0122;) can be used</p>
       <example caption='Requester uses regular expressions to search files'>
 <![CDATA[
 <iq type='get'
     from='juliet@capulet.com/chamber'
     to='romeo@montague.net/home'
     id='1234'>
-    <match xmlns='urn:xmpp:mam'>
+    <match xmlns='urn:xmpp:fis'>
       <query xmlns='jabber:iq:search'>
         <x xmlns='jabber:x:data' type='submit'>
           <field type='hidden' var='FORM_TYPE'>
@@ -358,7 +338,7 @@
           <field var='name'>
               <validate xmlns='http://jabber.org/protocol/xdata-validate'
                         datatype='xs:string'>
-                <regex>*.png</regex>
+                <regex>[a-z0-9]*\.png</regex>
               </validate>
           </field>
         </x>
@@ -373,7 +353,7 @@
     from='romeo@montague.net/home'
     to='juliet@capulet.com/chamber'
     id='1234'>
-    <match xmlns='urn:xmpp:mam'>
+    <match xmlns='urn:xmpp:fis'>
         <query xmlns='jabber:iq:search'>
             <item>
                 <name>pics/test3.png</name>
@@ -396,16 +376,16 @@
 <section1 topic='Bandwidth Considerations' anchor='bandwidth'>
     <p> If a considerable amount of files are being shared by the offering entity, it may be the case that the offering entity response might be too be for the server to handle; As there might be a limitation on the size of the stanzas in the current stream. In order to solve this, extensions have been devised and their implementation are hereby recommended along with the implementation of this extension.</p>
     <section2 topic='Using Result Set Management' anchor='resultset'>
-        <p>&xep0059; defines a way of limiting the results of a request. There are some considerations to use &xep0059; along with this extension.</p>
-        <p>First, in &xep0059; it is defined that the requesting entity is the one that sets the limit of the number of items that can be replied. So it is up to the requesting entity to choose a sensible number.</p>
-        <p>Second, since this protocol defines a way of handling the directory tree structure by allowing files tags to be children of a directory tags, it becomes difficult to define items for &xep0059;. Therefore, when responding to a request using &xep0059;, the offering entity MUST NOT send directory tags with files as their children, file tags must be sent separately with their path (starting at the root shared folder) in their name attribute.</p>
+        <p>&xep0059; defines a way of limiting the results of a request. There are some considerations to use result sets along with this extension.</p>
+        <p>First, it is defined that the requesting entity is the one that sets the limit of the number of items that can be replied. So it is up to the requesting entity to choose a sensible number.</p>
+        <p>Second, since this protocol defines a way of handling the directory tree structure by allowing file tags to be children of a directory tags, it becomes difficult to define items for Result Set Management. Therefore, when responding to a request, the offering entity MUST NOT send directory tags with files as their children, file tags must be sent separately with their path (starting at the root shared folder) in their name attribute.</p>
         <example caption='Offering entity responds using result set'>
 <![CDATA[
 <iq type='result'
     from='romeo@montague.net/home'
     to='juliet@capulet.com/chamber'
     id='1234'>
-    <match xmlns='urn:xmpp:mam'>
+    <match xmlns='urn:xmpp:fis'>
         <offer>
             <item>
                 <file xmlns='urn:xmpp:jingle:apps:file-transfer:3'>
