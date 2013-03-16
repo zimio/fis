@@ -59,11 +59,11 @@
 </section1>
 <section1 topic='Assumptions' anchor='assump'>
 <!-- Maybe make this into a list -->
-    <p> This protocol assumes the existence of a shared directory (either virtual or physical). The hosting entity must not advertise empty directories. The hosting entity is responsible of maintaining the structure of that directory (such as not allowing two files with the same name and preventing cycles within directories). The hosting entity is in no way required to present the same shared directory to different requesters.</p>
+    <p> This protocol assumes the existence of one or more shared directories (either virtual or physical). The hosting entity must not advertise empty directories. The hosting entity is responsible of maintaining the structure of those directories (such as not allowing two files with the same name and preventing cycles within directories). The hosting entity is in no way required to present the same shared directories to different requesters. In fact, the reason multiple share directories are allowed, is to make it easier for implementers to manage permissions of who can see what files.</p>
 </section1>
 <section1 topic='Getting Information About Files ' anchor='disco'>
   <section2 topic='Traversing Files' anchor='traver'>
-      <p>If a requesting entity wishes to traverse the shared folder of an offering entity. It can do so by querying the root directory as it is shown in the following example:</p>
+      <p>If a requesting entity wishes to know what files are being shared by an offering entity, it can do so by sending the following query:</p>
       <example caption='Requester queries the root of the shared folder'>
 <![CDATA[
 <iq type='get'
@@ -74,27 +74,17 @@
 </iq>
 ]]>
       </example>
-      <p> If the offering entity has files to share, it MUST respond with the root-level files of its shared folder. Files and directories at the root level MUST not be the child of any "directory" tag. In order to save bandwidth, the offering entity MAY omit all the children of the file tag except the "name" which is required and MUST always be present.
-      </p>
-      <p>The file tag has the same attributes as defined in &xep0096;. The "name" attribute is required and must be included in every response. The "size" attribute is only required when responding with detailed information about a file.</p>
-      <example caption='The offering entity responds with files'>
+      <p> If the offering entity wishes to share files with the requesting entity, it may respond with a list of shared folders. It MUST not include any files in this response.</p>
+      <example caption='The offering entity responds with shared directories'>
 <![CDATA[
 <iq type='result'
     from='romeo@montague.net/home'
     to='juliet@capulet.com/chamber'
     id='1234'>
     <query xmlns="urn:xmpp:fis">
-        <file xmlns='urn:xmpp:jingle:apps:file-transfer:3'>
-            <date>1969-07-21T02:56:15Z</date>
-            <desc>This is a test. If this were a real file...</desc>
-            <name>test.txt</name>
-            <size>1022</size>
-            <hash xmlns='urn:xmpp:hashes:1' algo='sha-1'>552da749930852c69ae5d2141d3766b1</hash>
-        </file>
-        <file xmlns='urn:xmpp:jingle:apps:file-transfer:3'>
-            <name>test2.txt</name>
-        </file>
+        <directory name='documents'/>
         <directory name='pics'/>
+        <directory name='audio'/>
     </query>
 </iq>
 ]]>
@@ -110,6 +100,42 @@
 </iq>
 ]]>
       </example>
+      <p>Requesting the list of files and directories within a directory.</p>
+      <example caption='The requesting entity wants to know about a particular directory'>
+<![CDATA[
+<iq type='get'
+    from='juliet@capulet.com/chamber'
+    to='romeo@montague.net/home'
+    id='1234'>
+    <query xmlns="urn:xmpp:fis" node="documents" />
+</iq>
+]]>
+</example>
+      <p>When replying with a list of files, the offering entity can choose to either reply with verbose information on the file using the file attributes defined by &xep0254; or it may reply only with the 'name' attribute, which is required and MUST be included in every response.</p>
+      <p>It is RECOMENDED, when the list files to be sent is small, that a verbose response be made (in order to avoid going back and forth requesting information), and that a non-verbose reponse be made otherwise. This recomendation is made to save bandwidth.</p>
+      <example caption='The offering entity replies with information about a particular directory'>
+<![CDATA[
+<iq type='result'
+    from='romeo@montague.net/home'
+    to='juliet@capulet.com/chamber'
+    id='1234'>
+    <query xmlns="urn:xmpp:fis" node="documents">
+        <file xmlns='urn:xmpp:jingle:apps:file-transfer:3'>
+            <name>documents/test.txt</name>
+            <date>1969-07-21T02:56:15Z</date>
+            <desc>This is a test. If this were a real file...</desc>
+            <range/>
+            <size>1022</size>
+            <hash xmlns='urn:xmpp:hashes:1' algo='sha-1'>552da749930852c69ae5d2141d3766b1</hash>
+        </file>
+        <file xmlns='urn:xmpp:jingle:apps:file-transfer:3'>
+            <name>documents/test2.txt</name>
+        </file>
+        <directory name="secret docs" />
+    </query>
+</iq>
+]]>
+</example>
       <p>If the requesting entity wants to get detailed information about a file. It can do so by providing its full path.</p>
       <example caption='The requesting entity wants to know about a particular file'>
 <![CDATA[
@@ -117,11 +143,10 @@
     from='juliet@capulet.com/chamber'
     to='romeo@montague.net/home'
     id='1234'>
-    <query xmlns="urn:xmpp:fis" node="test2.txt" />
+    <query xmlns="urn:xmpp:fis" node="documents/test2.txt" />
 </iq>
 ]]>
 </example>
-    <p> When replying with detailed information about a file, the offering entity must always include the "name" and "size".</p>
       <example caption='The offering entity responds with more information'>
 <![CDATA[
 <iq type='result'
@@ -130,37 +155,9 @@
     id='1234'>
     <query xmlns="urn:xmpp:fis" node="test2.txt">
         <file xmlns='urn:xmpp:jingle:apps:file-transfer:3'>
-        <name>test2.txt</name>
-        <size>1000</size>
+            <name>test2.txt</name>
+            <size>1000</size>
         </file>
-    </query>
-</iq>
-]]>
-</example>
-      <example caption='The requesting entity wants know about what files are in a directory'>
-<![CDATA[
-<iq type='get'
-    from='juliet@capulet.com/chamber'
-    to='romeo@montague.net/home'
-    id='1234'>
-    <query xmlns="urn:xmpp:fis" node="pics" />
-</iq>
-]]>
-</example>
-      <example caption='The offering entity responds with directory structure'>
-<![CDATA[
-<iq type='result'
-    from='romeo@montague.net/home'
-    to='juliet@capulet.com/chamber'
-    id='1234'>
-    <query xmlns="urn:xmpp:fis" node="pics">
-        <file xmlns='urn:xmpp:jingle:apps:file-transfer:3'>
-            <name>test3.png</name>
-        </file>
-        <file xmlns='urn:xmpp:jingle:apps:file-transfer:3'>
-            <name>test4.png</name>
-        </file>
-        <directory name="landscapes" />
     </query>
 </iq>
 ]]>
