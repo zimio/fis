@@ -46,6 +46,7 @@
 <section1 topic='Introduction' anchor='intro'>
   <p>XMPP extensions provide ways of transferring files between peers (such as &xep0234; and &xep0096;). However, file transfer is currently limited to needing that the transfer be initiated by the hosting entity. The &xep0234; extension, provides for a way to request files, but it requires the requesting entity to have information about the file being requested, so that it can be uniquely identified. </p>
 <p>This document defines an extension which allows the request of information of files being offered by a hosting entity so they can later be requested in a file transfer; If the requesting entity is interested in the file.</p>
+<!-- TODO: Give better reasons for replacing 135 -->
 <p>&xep0135; is a previous extention that attempted to solve the same problem as this one, but unfortunetly it didn't generate much interest and it got deprecated. This extention aims be a modern replacement for XEP-0135. Some of the major differences between the two is that it reuses the metadata for files defined in XEP-0234 (which has a lot of benefits over using dataforms, such as the use of &xep0300;), and allows for a possibility of &lt;<link url='http://en.wikipedia.org/wiki/Swarmcast'>swarming file transfer</link>&gt; (by allowing a file be requested by its hash and using jingle's ranged transfer).</p>
 <p>IRC users have been able to bypass the limitations of the protocol by using bots that provide information of files and initiate transfer on command. A major downside of this method is that not every user is capable of sharing its files. The aim of this document is to provide a similar functionality while making it easier for users to offer and request information about files. </p>
 <p>Microsoft's MSN proprietary IM client, used to provide similar functionality using "Sharing Folders", but this was replaced by Windows Live SkyDrive </p>
@@ -262,7 +263,7 @@
 </section1>
 <section1 topic='Implementation Notes' achor='implementation'>
     <section2>
-        <p> As it was previously discussed, when requesting detailed information about a file, only the "name" and "size" attributes required, but it is strongly RECOMMENDED that the hash attribute be included, in order to reduce the chances of sending the wrong file. When requesting the file to be transferred using &xep0234;, the information that must be provided has to identify the file uniquely. It is then RECOMMENDED that when requesting a file, the full path of the file in the shared folder be included in the "name" attribute.</p>
+        <p> As it was previously discussed, when requesting detailed information about a file, only the "name" attribute is required, but it is strongly RECOMMENDED that the hash attribute be included, in order to reduce the chances of sending the wrong file. When requesting the file to be transferred using &xep0234;, the information that must be provided has to identify the file uniquely. It is then RECOMMENDED that when requesting a file, the full path of the file in the shared folder be included in the "name" attribute.</p>
         <example>
 <![CDATA[
   <jingle xmlns='urn:xmpp:jingle:1'
