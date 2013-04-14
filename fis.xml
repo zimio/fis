@@ -46,8 +46,7 @@
 <section1 topic='Introduction' anchor='intro'>
   <p>XMPP extensions provide ways of transferring files between peers (such as &xep0234; and &xep0096;). However, file transfer is currently limited to needing that the transfer be initiated by the hosting entity. The &xep0234; extension, provides for a way to request files, but it requires the requesting entity to have information about the file being requested, so that it can be uniquely identified. </p>
 <p>This document defines an extension which allows the request of information of files being offered by a hosting entity so they can later be requested in a file transfer; If the requesting entity is interested in the file.</p>
-<!-- TODO: Give better reasons for replacing 135 -->
-<p>&xep0135; is a previous extention that attempted to solve the same problem as this one, but unfortunetly it didn't generate much interest and it got deprecated. This extention aims be a modern replacement for XEP-0135. Some of the major differences between the two is that it reuses the metadata for files defined in XEP-0234 (which has a lot of benefits over using dataforms, such as the use of &xep0300;), and allows for a possibility of &lt;<link url='http://en.wikipedia.org/wiki/Swarmcast'>swarming file transfer</link>&gt; (by allowing a file be requested by its hash and using jingle's ranged transfer).</p>
+<p>&xep0135; is a previous extention that attempted to solve the same problem as this one, but unfortunetly it didn't generate much interest and it got deprecated. This extention aims be a modern replacement for XEP-0135.</p>
 <p>IRC users have been able to bypass the limitations of the protocol by using bots that provide information of files and initiate transfer on command. A major downside of this method is that not every user is capable of sharing its files. The aim of this document is to provide a similar functionality while making it easier for users to offer and request information about files. </p>
 <p>Microsoft's MSN proprietary IM client, used to provide similar functionality using "Sharing Folders", but this was replaced by Windows Live SkyDrive </p>
 </section1>
@@ -55,7 +54,6 @@
   <ol>
     <li>Enable a requesting entity to traverse the shared directory of an offering entity (REQUIRED)</li>
     <li>Enable a requesting entity to get detailed information about files. (REQUIRED)</li>
-    <li>Allow the use of MUCs to share information about files among the users.(OPTIONAL)</li>
   </ol>
 </section1>
 <section1 topic='Assumptions' anchor='assump'>
@@ -122,7 +120,7 @@
     id='1234'>
     <query xmlns="urn:xmpp:fis" node="documents">
         <file xmlns='urn:xmpp:jingle:apps:file-transfer:3'>
-            <name>documents/test.txt</name>
+            <name>test.txt</name>
             <date>1969-07-21T02:56:15Z</date>
             <desc>This is a test. If this were a real file...</desc>
             <range/>
@@ -130,7 +128,7 @@
             <hash xmlns='urn:xmpp:hashes:1' algo='sha-1'>552da749930852c69ae5d2141d3766b1</hash>
         </file>
         <file xmlns='urn:xmpp:jingle:apps:file-transfer:3'>
-            <name>documents/test2.txt</name>
+            <name>test2.txt</name>
         </file>
         <directory name="secret docs" />
     </query>
@@ -165,53 +163,12 @@
 </example>
   </section2>
 </section1>
-<section1 topic='Discovering Files In a MUC' anchor='muc'>
-    <p>For the most part, discovering files in a MUC is exactly the same as what has been described in this document. However there are some considerations to have present.</p>
-    <p>First, it is RECOMMENDED that a participant in a MUC should have a single shared folder associated with the entire room, as opposed to advertise different files to different participants of the room. This is to reduce the complexity of the client software. Also, due to volatile nature of the participants in a room, keeping track of permissions is more trouble than what it is worth.</p>
-    <p>Second, a participant may discover files of all the participants in the room by sending the request to the room itself. It is RECOMMENDED that the search capabilities of this protocol be used for this.</p>
-</section1>
 <section1 topic='Bandwidth Considerations' anchor='bandwidth'>
     <p> If a considerable amount of files are being shared by the offering entity, it may be the case that the offering entity response might be too be for the server to handle; As there might be a limitation on the size of the stanzas in the current stream. In order to solve this, extensions have been devised and their implementation are hereby recommended along with the implementation of this extension.</p>
     <section2 topic='Using Result Set Management' anchor='resultset'>
         <p>&xep0059; defines a way of limiting the results of a request. There are some considerations to use result sets along with this extension.</p>
         <p>First, it is defined that the requesting entity is the one that sets the limit of the number of items that can be replied. So it is up to the requesting entity to choose a sensible number.</p>
-        <p>Second, since this protocol defines a way of handling the directory tree structure by allowing file tags to be children of a directory tags, it becomes difficult to define items for Result Set Management. Therefore, when responding to a request, the offering entity MUST NOT send directory tags with files as their children, file tags must be sent separately with their path (starting at the root shared folder) in their name attribute.</p>
-        <example caption='Offering entity responds using result set'>
-<![CDATA[
-<iq type='result'
-    from='romeo@montague.net/home'
-    to='juliet@capulet.com/chamber'
-    id='1234'>
-    <match xmlns='urn:xmpp:fis'>
-        <offer>
-            <item>
-                <file xmlns='urn:xmpp:jingle:apps:file-transfer:3'>
-                    <name>test.txt</name>
-                </file>
-            </item>
-            <item>
-                <file xmlns='urn:xmpp:jingle:apps:file-transfer:3'>
-                    <name>test2.txt</name>
-                </file>
-            </item>
-            <item>
-                <file xmlns='urn:xmpp:jingle:apps:file-transfer:3'>
-                    <name>pics/test3.png</name>
-                </file>
-            </item>
-            <item>
-                <file xmlns='urn:xmpp:jingle:apps:file-transfer:3'>
-                    <name>pics/test4.png</name>
-                </file>
-            </item>
-            <item>
-                <directory name='pics'>
-            </item>
-        </offer>
-    </match>
-</iq>
-]]>
-        </example>
+        <p>Second, since this protocol defines a way of handling the directory tree structure by allowing file tags to be children of a directory tags, it becomes difficult to define items for Result Set Management. Therefore, when responding to a request, the offering entity MUST NOT send directory tags with files as their children.         </p>
     </section2>
     <section2 topic='Out of Band Transfer' anchor='out-of-band'>
         <p>One obvious way to overcome the limitations of sending large stanzas in-band, is to transfer that information out of band. &xep0265; could be used for that purpose. It is hereby RECOMMENDED its implementation when the offering entity has a massive amount of files that would not be practical to advertise in-band.</p>
@@ -261,8 +218,8 @@
 -->
     </section2>
 </section1>
-<section1 topic='Implementation Notes' achor='implementation'>
-    <section2>
+<section1 topic='Implementation Notes' anchor='implementation'>
+    <section2 topic='File identification' anchor='file_id'>
         <p> As it was previously discussed, when requesting detailed information about a file, only the "name" attribute is required, but it is strongly RECOMMENDED that the hash attribute be included, in order to reduce the chances of sending the wrong file. When requesting the file to be transferred using &xep0234;, the information that must be provided has to identify the file uniquely. It is then RECOMMENDED that when requesting a file, the full path of the file in the shared folder be included in the "name" attribute.</p>
         <example>
 <![CDATA[
@@ -281,6 +238,9 @@
       </description>
 ]]>
         </example>
+    </section2>
+    <section2 topic='File Sharing in MUCs' anchor='fis_muc'>
+ <p>For the most part, discovering files in a MUC is exactly the same as what has been described in this document. However, it is RECOMMENDED that a participant in a MUC should have a single shared folder associated with the entire room, as opposed to advertise different files to different participants of the room. This is to reduce the complexity of the client software. Also, due to volatile nature of the participants in a room, keeping track of permissions is more trouble than what it is worth.</p>
     </section2>
 </section1>
 <section1 topic='Security Considerations' anchor='security'>
